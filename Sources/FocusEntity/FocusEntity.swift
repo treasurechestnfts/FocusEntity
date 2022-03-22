@@ -238,6 +238,7 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
             
             let onPlaneLabel = UILabel()
             onPlaneLabel.text = "Tap the screen to place NFT"
+            onPlaneLabel.textColor = .white
             onPlaneLabel.font = UIFont.init(name: "Gilroy-Bold", size: 18)
             onPlaneLabel.translatesAutoresizingMaskIntoConstraints = false
             onPlaneLabel.layer.shadowColor = UIColor.black.cgColor
@@ -249,6 +250,7 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
             
             let offPlaneLabel = UILabel()
             offPlaneLabel.text = "Find a flat surface or wall"
+            offPlaneLabel.textColor = .white
             offPlaneLabel.font = UIFont.init(name: "Gilroy-Bold", size: 18)
             offPlaneLabel.translatesAutoresizingMaskIntoConstraints = false
             offPlaneLabel.layer.shadowColor = UIColor.black.cgColor
