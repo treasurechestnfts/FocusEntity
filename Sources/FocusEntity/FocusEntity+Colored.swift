@@ -35,7 +35,7 @@ public extension FocusEntity {
                 arView.addSubview(onPlaneLabel)
                 NSLayoutConstraint.activate([
                     onPlaneLabel.centerXAnchor.constraint(equalTo: arView.centerXAnchor),
-                    onPlaneLabel.centerYAnchor.constraint(equalTo: arView.bottomAnchor, constant: -250),
+                    onPlaneLabel.centerYAnchor.constraint(equalTo: arView.bottomAnchor, constant: -300),
                 ])
             }
             self.offPlaneLabel?.removeFromSuperview()
