@@ -16,30 +16,23 @@ public extension FocusEntity {
         guard self.focus.entityStyle != nil else {
             return
         }
-        if self.state == .initializing ||
-            !self.onPlane {
-            self.fillPlane?.isEnabled = false
-            if let offPlaneLabel = self.offPlaneLabel,
-               let arView = self.arView {
-                arView.addSubview(offPlaneLabel)
-                NSLayoutConstraint.activate([
-                    offPlaneLabel.centerXAnchor.constraint(equalTo: arView.centerXAnchor),
-                    offPlaneLabel.centerYAnchor.constraint(equalTo: arView.centerYAnchor),
-                ])
-            }
-            self.onPlaneLabel?.removeFromSuperview()
-        } else {
-            self.fillPlane?.isEnabled = true
-            if let onPlaneLabel = self.onPlaneLabel,
-               let arView = self.arView {
-                arView.addSubview(onPlaneLabel)
-                NSLayoutConstraint.activate([
-                    onPlaneLabel.centerXAnchor.constraint(equalTo: arView.centerXAnchor),
-                    onPlaneLabel.centerYAnchor.constraint(equalTo: arView.bottomAnchor, constant: -300),
-                ])
-            }
-            self.offPlaneLabel?.removeFromSuperview()
-        }
+        self.fillPlane?.isEnabled = true
+        
+//        if self.state == .initializing ||
+//            !self.onPlane {
+//            self.fillPlane?.isEnabled = true
+//            if let offPlaneLabel = self.offPlaneLabel,
+//               let arView = self.arView {
+//                arView.addSubview(offPlaneLabel)
+//                NSLayoutConstraint.activate([
+//                    offPlaneLabel.centerXAnchor.constraint(equalTo: arView.centerXAnchor),
+//                    offPlaneLabel.centerYAnchor.constraint(equalTo: arView.centerYAnchor),
+//                ])
+//            }
+//        } else {
+//            self.fillPlane?.isEnabled = true
+//            self.offPlaneLabel?.removeFromSuperview()
+//        }
     }
     
     internal func coloredStateChanged() {

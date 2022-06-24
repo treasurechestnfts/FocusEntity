@@ -88,9 +88,6 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
         
         self.offPlaneLabel?.removeFromSuperview()
         self.offPlaneLabel = nil
-        
-        self.onPlaneLabel?.removeFromSuperview()
-        self.onPlaneLabel = nil
     }
 
     private var updateCancellable: Cancellable?
@@ -143,6 +140,7 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
                     self.delegate?.toInitializingState?()
                 }
             case let .tracking(raycastResult, camera):
+                lastRaycastResult = raycastResult
                 let stateChanged = oldValue == .initializing
                 if stateChanged && self.anchor != nil {
                     self.anchoring = AnchoringComponent(.world(transform: Transform.identity.matrix))
@@ -160,6 +158,8 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
             }
         }
     }
+    
+    public internal(set) var lastRaycastResult: ARRaycastResult? = nil
 
     public internal(set) var onPlane: Bool = false
 
@@ -168,9 +168,14 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
 
     /// Indicates if the square is currently changing its alignment.
     public internal(set) var isChangingAlignment = false
+    
+    /// The primary node that controls the position of other `FocusEntity` nodes.
+    public let positioningEntity = Entity()
+    
+    public internal(set) var fillPlane: Entity?
 
     /// A camera anchor used for placing the focus entity in front of the camera.
-    internal var cameraAnchor: AnchorEntity!
+    public internal(set) var cameraAnchor: AnchorEntity!
 
     /// The focus square's current alignment.
     internal var currentAlignment: ARPlaneAnchor.Alignment?
@@ -179,20 +184,15 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
     public internal(set) var currentPlaneAnchor: ARPlaneAnchor?
 
     /// The focus square's most recent positions.
-    internal var recentFocusEntityPositions: [SIMD3<Float>] = []
+    public internal(set) var recentFocusEntityPositions: [SIMD3<Float>] = []
 
     /// The focus square's most recent alignments.
-    internal var recentFocusEntityAlignments: [ARPlaneAnchor.Alignment] = []
+    public internal(set) var recentFocusEntityAlignments: [ARPlaneAnchor.Alignment] = []
 
     /// Previously visited plane anchors.
     internal var anchorsOfVisitedPlanes: Set<ARAnchor> = []
-
-    /// The primary node that controls the position of other `FocusEntity` nodes.
-    internal let positioningEntity = Entity()
     
-    internal var fillPlane: Entity?
-    internal var onPlaneLabel: UILabel?
-    internal var offPlaneLabel: UILabel?
+    internal var offPlaneLabel: UIView?
 
     public var scaleEntityBasedOnDistance = true {
         didSet {
@@ -236,29 +236,30 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
             self.positioningEntity.addChild(fillPlane)
             self.fillPlane = fillPlane
             
-            let onPlaneLabel = UILabel()
-            onPlaneLabel.text = "Tap the screen to place NFT"
-            onPlaneLabel.textColor = .white
-            onPlaneLabel.font = UIFont.init(name: "Gilroy-Bold", size: 18)
-            onPlaneLabel.translatesAutoresizingMaskIntoConstraints = false
-            onPlaneLabel.layer.shadowColor = UIColor.black.cgColor
-            onPlaneLabel.layer.shadowRadius = 2.0
-            onPlaneLabel.layer.shadowOpacity = 0.5
-            onPlaneLabel.layer.shadowOffset = CGSize(width: 2, height: 2)
-            onPlaneLabel.layer.masksToBounds = false
-            self.onPlaneLabel = onPlaneLabel
+            let offPlaneLabelContainer = UIView()
+            offPlaneLabelContainer.backgroundColor = .black.withAlphaComponent(0.2)
+            offPlaneLabelContainer.layer.cornerRadius = 10
             
             let offPlaneLabel = UILabel()
-            offPlaneLabel.text = "Find a flat surface or wall"
+            offPlaneLabel.text = "find a flat surface or wall"
             offPlaneLabel.textColor = .white
             offPlaneLabel.font = UIFont.init(name: "Gilroy-Bold", size: 18)
-            offPlaneLabel.translatesAutoresizingMaskIntoConstraints = false
             offPlaneLabel.layer.shadowColor = UIColor.black.cgColor
             offPlaneLabel.layer.shadowRadius = 2.0
             offPlaneLabel.layer.shadowOpacity = 0.5
             offPlaneLabel.layer.shadowOffset = CGSize(width: 2, height: 2)
             offPlaneLabel.layer.masksToBounds = false
-            self.offPlaneLabel = offPlaneLabel
+            
+            offPlaneLabel.translatesAutoresizingMaskIntoConstraints = false
+            offPlaneLabelContainer.addSubview(offPlaneLabel)
+            NSLayoutConstraint.activate([
+                offPlaneLabelContainer.centerYAnchor.constraint(equalTo: offPlaneLabel.centerYAnchor),
+                offPlaneLabelContainer.centerXAnchor.constraint(equalTo: offPlaneLabel.centerXAnchor),
+                offPlaneLabelContainer.widthAnchor.constraint(equalToConstant: 200),
+                offPlaneLabelContainer.heightAnchor.constraint(equalToConstant: 40),
+            ])
+            
+            self.offPlaneLabel = offPlaneLabelContainer
             
             self.entityStateChanged()
         case .classic:
@@ -298,7 +299,9 @@ open class FocusEntity: Entity, HasAnchoring, HasFocusEntity {
         // --//
         // Make focus entity face the camera with a smooth animation.
         var newRotation = arView?.cameraTransform.rotation ?? simd_quatf()
-        newRotation *= simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
+        if (fillPlane?.name != "SpaceDoodles" && fillPlane?.name != "Sphere") {
+            newRotation *= simd_quatf(angle: .pi / 2, axis: [1, 0, 0])
+        }
         performAlignmentAnimation(to: newRotation)
     }
 
